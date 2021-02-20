@@ -113,15 +113,51 @@ const runMyActivity = async () => {
       if (index === 0) {
         return;
       }
+      const weekName = tr.querySelectorAll("td")[1].textContent?.trim();
+      const isThus = weekName === "پنجشنبه";
+      const isFri = weekName === "جمعه";
+
+      if (isThus || isFri) {
+        return;
+      }
 
       const textContent = tr.querySelectorAll("td")[4].textContent;
       const date = tr.querySelectorAll("td")[2].textContent;
-      const contentArray = textContent.split("-");
-      let exitTime = contentArray[contentArray.length - 1];
 
-      if (exitTime.includes("پ")) {
-        exitTime = exitTime.replace("پ ", "");
-        exitTime = exitTime.trim();
+      let timeArray = textContent.split("و/خ");
+
+      timeArray = timeArray.slice(1).map((v) =>
+        v
+          .trim()
+          .split("-")
+          .map((t) => t.trim().replace("پ", "").replace("ش", "").trim())
+      );
+
+      const durations = timeArray.map(([startTime, exitTime]) => {
+        durationMS =
+          new Date(`2020/1/1 ${exitTime}`) - new Date(`2020/1/1 ${startTime}`);
+
+        return durationMS;
+      });
+
+      const isValid = durations.every((duration) => Number.isInteger(duration));
+
+      if (isValid) {
+        const sum = durations.reduce((prev, cur) => prev + cur, 0) / 3600000;
+
+        if (sum < 9) {
+          return;
+        }
+
+        const exitTime = timeArray[timeArray.length - 1][1];
+
+        const isAfter =
+          new Date(`2020/1/1 ${exitTime}`) - new Date(`2020/1/1 5:30 PM`);
+
+        if (isAfter < 0) {
+          return;
+        }
+
         if (exitTime.includes("PM")) {
           result.push({
             exitTime,
