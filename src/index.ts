@@ -61,17 +61,16 @@ const runTfs = async () => {
         );
         await setValue(iDocument, "C_rdtxtDesc", ".");
         await sleep(300);
-        // iDocument.getElementById("ctl00_C_btnSave")?.click();
-        // setInterval(() => {
-        //   console.log("setInterval");
-        //   const visibility = document.getElementById(
-        //     "RadWindowWrapper_ctl00_ctl00_ctl00_C_C_C_myPopupWindow",
-        //   )?.style.visibility;
+        iDocument.getElementById("ctl00_C_btnSave")?.click();
+        setInterval(() => {
+          const visibility = document.getElementById(
+            "RadWindowWrapper_ctl00_ctl00_ctl00_C_C_C_myPopupWindow",
+          )?.style.visibility;
 
-        //   if (visibility === "hidden") {
-        //     window.location.reload();
-        //   }
-        // }, 2000);
+          if (visibility === "hidden") {
+            window.location.reload();
+          }
+        }, 2000);
       }
     },
   );
@@ -93,7 +92,9 @@ const runMyActivity = async () => {
     runMyActivity();
     return;
   }
-  const rwTitleWrapper = document.querySelector(".rwTitleWrapper");
+  const rwTitleWrapper = document.querySelector(".rwTitleWrapper .rwTitle") as
+    | HTMLHeadingElement
+    | undefined;
   if (!rwTitleWrapper) {
     await sleep(1000);
     runMyActivity();
@@ -101,14 +102,11 @@ const runMyActivity = async () => {
     return;
   }
 
-  rwTitleWrapper.innerHTML =
-    '<button type="button" id="______saveButton" >ذخیره اضافه کاری</button>' +
-    rwTitleWrapper.innerHTML;
+  rwTitleWrapper.innerText = "ذخیره اضافه کاری";
+  rwTitleWrapper.style.textDecoration = "underline";
 
-  const saveButton = document.getElementById("______saveButton");
-
-  if (saveButton) {
-    saveButton.onclick = async () => {
+  if (rwTitleWrapper) {
+    rwTitleWrapper.onclick = async () => {
       await sleep(300);
 
       iframe.focus();
@@ -173,6 +171,7 @@ const runMyActivity = async () => {
         if (!isValid) {
           return;
         }
+
         const sum = durations.reduce((prev, cur) => prev + cur, 0) / 3600000;
 
         if (sum < 9) {
@@ -197,7 +196,11 @@ const runMyActivity = async () => {
         }
       });
       console.log(result);
+      if (result.length === 0) {
+        alert(" شما هیچ اضافه کاری معتبری برای ثبت ندارید.");
 
+        return;
+      }
       chrome.storage.sync.set({
         extraDates: JSON.stringify(result.filter(Boolean)),
       });

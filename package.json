@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "prepare": "tsc",
+    "start": "tsc -w",
     "lint": "eslint --ext '.ts' ./src",
     "test": "yarn prepare && jest",
     "prettierAll": "prettier --write \"**/*.ts\""
