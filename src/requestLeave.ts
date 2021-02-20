@@ -1,18 +1,19 @@
-import { ExtraItem } from "./types";
+import { DelayItem } from "./types";
 import { setValue, sleep } from "./utils";
 
-const runExtraTime = async () => {
+const runRequestLeave = async () => {
   chrome.storage.sync.get(
     {
-      extraDates: "",
+      delayedDates: "",
     },
-    async function ({ extraDates: ـextraDates }) {
-      let extraDates: ExtraItem[] =
-        (ـextraDates && JSON.parse(ـextraDates)) || [];
-      extraDates = extraDates.filter(Boolean);
-      console.log({ extraDates });
+    async function ({ delayedDates: _delayedDates }) {
+      let delayedDates: DelayItem[] =
+        (_delayedDates && JSON.parse(_delayedDates)) || [];
+      delayedDates = delayedDates.filter(Boolean);
 
-      if (extraDates.length <= 0) {
+      console.log({ delayedDates });
+
+      if (delayedDates.length <= 0) {
         return;
       }
 
@@ -31,37 +32,38 @@ const runExtraTime = async () => {
 
       if (!iDocument) {
         await sleep(1000);
-        runExtraTime();
+        runRequestLeave();
         return;
       }
-      const item = extraDates.pop() as ExtraItem;
-      chrome.storage.sync.set({
-        extraDates: JSON.stringify(extraDates),
-      });
 
+      const item = delayedDates.pop() as DelayItem;
+      chrome.storage.sync.set({
+        delayedDates: JSON.stringify(delayedDates),
+      });
       await sleep(1000);
-      if (!iDocument.getElementById("ctl00_C_rdtpStartTime_dateInput")) {
+      if (!iDocument.getElementById("ctl00_C_tpEndTime_dateInput")) {
         await sleep(2000);
       }
 
-      if (iDocument.getElementById("ctl00_C_rdtpStartTime_dateInput")) {
+      if (iDocument.getElementById("ctl00_C_tpEndTime_dateInput")) {
+        await setValue(iDocument, "ctl00_C_txtDesc", ".");
         await setValue(iDocument, "C_dpDate_txtDate", item.date);
-        await setValue(iDocument, "ctl00_C_rdtpStartTime_dateInput", "5:01 PM");
+        await setValue(iDocument, "ctl00_C_tpStartTime_dateInput", "8:30 AM");
         await setValue(
           iDocument,
-          "ctl00_C_rdtpEndTime_dateInput",
-          item.exitTime,
+          "ctl00_C_tpEndTime_dateInput",
+          item.startTime,
         );
-        await setValue(iDocument, "C_rdtxtDesc", ".");
         await sleep(300);
         iDocument.getElementById("ctl00_C_btnSave")?.click();
+
         const interval = setInterval(() => {
           const visibility = document.getElementById(
             "RadWindowWrapper_ctl00_ctl00_ctl00_C_C_C_myPopupWindow",
           )?.style.visibility;
 
           if (visibility === "hidden") {
-            if (extraDates.length <= 0) {
+            if (delayedDates.length <= 0) {
               clearInterval(interval);
               alert("همه موارد ثبت شد.");
             } else {
@@ -74,4 +76,4 @@ const runExtraTime = async () => {
   );
 };
 
-export { runExtraTime };
+export { runRequestLeave };

@@ -2,138 +2,220 @@ import { sleep } from "./utils";
 
 const runMyActivity = async () => {
   await sleep(1000);
+  const timeout = setTimeout(runMyActivity, 3000);
+
   const iframe = document.getElementsByName("WindowShowDialog")?.[0] as
     | HTMLIFrameElement
     | undefined;
 
   if (!iframe) {
-    await sleep(3000);
-    runMyActivity();
     return;
   }
+
   const rwTitleWrapper = document.querySelector(".rwTitleWrapper .rwTitle") as
     | HTMLHeadingElement
     | undefined;
   if (!rwTitleWrapper) {
+    clearTimeout(timeout);
     await sleep(1000);
     runMyActivity();
 
     return;
   }
 
-  rwTitleWrapper.innerText = "ذخیره اضافه کاری";
-  rwTitleWrapper.style.textDecoration = "underline";
+  const addExtra = document.createElement("a");
+  addExtra.innerText = "ذخیره اضافه کاری";
+  addExtra.style.paddingRight = "10px";
 
-  if (rwTitleWrapper) {
-    rwTitleWrapper.onclick = async () => {
-      await sleep(300);
+  addExtra.onclick = async () => {
+    await sleep(300);
 
-      iframe.focus();
-      await sleep(300);
+    iframe.focus();
+    await sleep(300);
 
-      const iDocument = iframe.contentWindow?.document;
+    const iDocument = iframe.contentWindow?.document;
 
-      if (!iDocument) {
-        console.log("WindowShowDialog not found");
+    if (!iDocument) {
+      console.log("WindowShowDialog not found");
+      return;
+    }
+
+    // const content = iDocument.querySelectorAll(
+    //   "#C_timeSheetTotalView_gridviewReport tr td"
+    // )[4].textContent;
+
+    const trs = iDocument.querySelectorAll(
+      "#C_timeSheetTotalView_gridviewReport tr",
+    );
+
+    const result: {
+      exitTime: string;
+      date: string;
+    }[] = [];
+
+    trs.forEach((tr, index) => {
+      if (index === 0) {
+        return;
+      }
+      const weekName = tr.querySelectorAll("td")[1].textContent?.trim();
+      const textContent = tr.querySelectorAll("td")[4].textContent;
+      const date = tr.querySelectorAll("td")[2].textContent;
+
+      const isThus = weekName === "پنجشنبه";
+      const isFri = weekName === "جمعه";
+
+      if (isThus || isFri || !textContent || !date) {
         return;
       }
 
-      // const content = iDocument.querySelectorAll(
-      //   "#C_timeSheetTotalView_gridviewReport tr td"
-      // )[4].textContent;
+      const timeArray = textContent.split("و/خ") || [];
 
-      const trs = iDocument.querySelectorAll(
-        "#C_timeSheetTotalView_gridviewReport tr",
-      );
+      // const timeEntries = timeArray.slice(1).map((v) =>
+      //   v
+      //     .trim()
+      //     .split("-")
+      //     .map((t) => t.trim().replace("پ", "").replace("ش", "").trim()),
+      // );
 
-      const result: {
-        exitTime: string;
-        date: string;
-      }[] = [];
+      // const durations = timeEntries.map(([startTime, exitTime]) => {
+      //   const durationMS =
+      //     new Date(`2020/1/1 ${exitTime}`).getTime() -
+      //     new Date(`2020/1/1 ${startTime}`).getTime();
 
-      trs.forEach((tr, index) => {
-        if (index === 0) {
-          return;
-        }
-        const weekName = tr.querySelectorAll("td")[1].textContent?.trim();
-        const textContent = tr.querySelectorAll("td")[4].textContent;
-        const date = tr.querySelectorAll("td")[2].textContent;
+      //   return durationMS;
+      // });
 
-        const isThus = weekName === "پنجشنبه";
-        const isFri = weekName === "جمعه";
+      // const isValid = durations.every((duration) => Number.isInteger(duration));
 
-        if (isThus || isFri || !textContent || !date) {
-          return;
-        }
+      // if (!isValid) {
+      //   return;
+      // }
 
-        const timeArray = textContent.split("و/خ") || [];
+      // const sum = durations.reduce((prev, cur) => prev + cur, 0) / 3600000;
 
-        const timeEntries = timeArray.slice(1).map((v) =>
-          v
-            .trim()
-            .split("-")
-            .map((t) => t.trim().replace("پ", "").replace("ش", "").trim()),
-        );
+      // if (sum < 9) {
+      //   return;
+      // }
 
-        const durations = timeEntries.map(([startTime, exitTime]) => {
-          const durationMS =
-            new Date(`2020/1/1 ${exitTime}`).getTime() -
-            new Date(`2020/1/1 ${startTime}`).getTime();
+      const exitTime = timeArray[timeArray.length - 1][1];
 
-          return durationMS;
+      const isAfter =
+        new Date(`2020/1/1 ${exitTime}`).getTime() -
+        new Date(`2020/1/1 5:30 PM`).getTime();
+
+      if (isAfter < 0) {
+        return;
+      }
+
+      if (exitTime.includes("PM")) {
+        result.push({
+          exitTime,
+          date,
         });
+      }
+    });
 
-        const isValid = durations.every((duration) =>
-          Number.isInteger(duration),
-        );
+    console.log(result);
 
-        if (!isValid) {
-          return;
-        }
+    if (result.length === 0) {
+      alert("هیچ اضافه کاره معتبر و قابل ثبتی وجود ندارد.");
 
-        const sum = durations.reduce((prev, cur) => prev + cur, 0) / 3600000;
+      return;
+    }
 
-        if (sum < 9) {
-          return;
-        }
+    chrome.storage.sync.set(
+      {
+        extraDates: JSON.stringify(result.filter(Boolean)),
+      },
+      () => {
+        location.href =
+          "http://automation.1st.co.com:8888/Account/RequestExtraWorkList.aspx";
+      },
+    );
+  };
 
-        const exitTime = timeArray[timeArray.length - 1][1];
+  const requestLeave = document.createElement("a");
+  requestLeave.innerText = "درخواست مرخصی";
+  requestLeave.style.paddingRight = "10px";
 
-        const isAfter =
-          new Date(`2020/1/1 ${exitTime}`).getTime() -
-          new Date(`2020/1/1 5:30 PM`).getTime();
+  requestLeave.onclick = async () => {
+    await sleep(300);
 
-        if (isAfter < 0) {
-          return;
-        }
+    iframe.focus();
+    await sleep(300);
 
-        if (exitTime.includes("PM")) {
-          result.push({
-            exitTime,
-            date,
-          });
-        }
-      });
+    const iDocument = iframe.contentWindow?.document;
 
-      console.log(result);
+    if (!iDocument) {
+      console.log("WindowShowDialog not found");
+      return;
+    }
 
-      if (result.length === 0) {
-        alert("هیچ اضافه کاره معتبر و قابل ثبتی وجود ندارد.");
+    const trs = iDocument.querySelectorAll(
+      "#C_timeSheetTotalView_gridviewReport tr",
+    );
 
+    const result: { date: string; startTime: string }[] = [];
+
+    trs.forEach((tr, index) => {
+      if (index === 0) {
+        return;
+      }
+      const weekName = tr.querySelectorAll("td")[1].textContent?.trim();
+      const textContent = tr.querySelectorAll("td")[4].textContent;
+      const date = tr.querySelectorAll("td")[2].textContent;
+
+      const isThus = weekName === "پنجشنبه";
+      const isFri = weekName === "جمعه";
+
+      if (isThus || isFri || !textContent || !date) {
         return;
       }
 
-      chrome.storage.sync.set(
-        {
-          extraDates: JSON.stringify(result.filter(Boolean)),
-        },
-        () => {
-          location.href =
-            "http://automation.1st.co.com:8888/Account/RequestExtraWorkList.aspx";
-        },
+      const timeArray = textContent.split("و/خ") || [];
+
+      const timeMatrix = timeArray.slice(1).map((v) =>
+        v
+          .trim()
+          .split("-")
+          .map((t) => t.trim().replace("پ", "").replace("ش", "").trim()),
       );
-    };
-  }
+
+      const startTime = timeMatrix?.[0]?.[0];
+
+      if (!startTime) {
+        return;
+      }
+
+      const hasDelay =
+        new Date(`2020/1/1 10:30 AM`).getTime() -
+        new Date(`2020/1/1 ${startTime}`).getTime();
+
+      if (hasDelay < 0) {
+        result.push({ startTime, date });
+      }
+    });
+
+    if (result.length === 0) {
+      alert("هیچ مرخصی برای شما ثبت نشد.");
+
+      return;
+    }
+
+    chrome.storage.sync.set(
+      {
+        delayedDates: JSON.stringify(result.filter(Boolean)),
+      },
+      () => {
+        location.href =
+          "http://automation.1st.co.com:8888/Account/RequestLeaveList.aspx";
+      },
+    );
+  };
+  rwTitleWrapper.innerText = "";
+  rwTitleWrapper.innerHTML = "";
+  rwTitleWrapper.appendChild(addExtra);
+  rwTitleWrapper.appendChild(requestLeave);
 };
 
 export { runMyActivity };
