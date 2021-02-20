@@ -14,37 +14,37 @@ async function setValue(doc: Document, id: string, value: string) {
 }
 
 const runTfs = async () => {
-  await sleep(1000);
-  const iframe = document.getElementsByName("myPopupWindow")?.[0] as
-    | HTMLIFrameElement
-    | undefined;
-
-  if (!iframe) {
-    // will be reload
-    document.getElementById("C_C_C_ImgBtnNew")?.click();
-    return;
-  }
-  const iDocument = iframe.contentWindow?.document;
-
-  if (!iDocument) {
-    await sleep(1000);
-    runTfs();
-    return;
-  }
-
   chrome.storage.sync.get(
     {
       extraDates: "",
     },
-
     async function ({ extraDates }) {
-      extraDates = JSON.parse(extraDates) || [];
+      extraDates = (extraDates && JSON.parse(extraDates)) || [];
       extraDates = extraDates.filter(Boolean);
+      console.log({ extraDates });
 
       if (extraDates.length <= 0) {
         return;
       }
 
+      await sleep(1000);
+      const iframe = document.getElementsByName("myPopupWindow")?.[0] as
+        | HTMLIFrameElement
+        | undefined;
+
+      if (!iframe) {
+        // will be reload
+        document.getElementById("C_C_C_ImgBtnNew")?.click();
+        return;
+      }
+
+      const iDocument = iframe.contentWindow?.document;
+
+      if (!iDocument) {
+        await sleep(1000);
+        runTfs();
+        return;
+      }
       /**@type {{exitTime: string,date: string}} */
       const item = extraDates.pop();
       chrome.storage.sync.set({
@@ -195,15 +195,24 @@ const runMyActivity = async () => {
           });
         }
       });
+
       console.log(result);
+
       if (result.length === 0) {
         alert(" شما هیچ اضافه کاری معتبری برای ثبت ندارید.");
 
         return;
       }
-      chrome.storage.sync.set({
-        extraDates: JSON.stringify(result.filter(Boolean)),
-      });
+
+      chrome.storage.sync.set(
+        {
+          extraDates: JSON.stringify(result.filter(Boolean)),
+        },
+        () => {
+          location.href =
+            "http://automation.1st.co.com:8888/Account/RequestExtraWorkList.aspx";
+        },
+      );
     };
   }
 };
