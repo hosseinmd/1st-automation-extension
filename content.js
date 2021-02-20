@@ -32,7 +32,13 @@ const runTfs = async () => {
     },
 
     async function ({ extraDates }) {
-      extraDates = JSON.parse(extraDates);
+      extraDates = JSON.parse(extraDates) || [];
+      extraDates = extraDates.filter(Boolean);
+
+      if (extraDates.length <= 0) {
+        return;
+      }
+
       /**@type {{exitTime: string,date: string}} */
       const item = extraDates.pop();
       chrome.storage.sync.set(
@@ -62,52 +68,6 @@ const runTfs = async () => {
       }
     }
   );
-
-  // function sendTask() {
-  // chrome.storage.sync.get({
-  //         taskTypeId: "",
-  //     },
-  //     function(item) {
-  //         if (
-  //             item.taskTypeId &&
-  //             document.querySelector(".work-item-form-id").innerText
-  //         ) {
-  //             var obj = {
-  //                 sourceTypeIndex: "TFS",
-  //                 taskId: document.querySelector(".work-item-form-id").innerText,
-  //                 taskTypeId: item.taskTypeId,
-  //                 title: document.querySelector(".work-item-form-title input").value,
-  //                 host: location.host,
-  //             };
-  //             chrome.runtime.sendMessage({ type: "StartTask", data: obj },
-  //                 function(response) {
-  //                     if (response) {
-  //                         if (response.success) {
-  //                             alert("با موفقت وظیفه ایجاد شد");
-  //                         } else {
-  //                             alert(response.result);
-  //                         }
-  //                     }
-  //                 }
-  //             );
-  //         } else {
-  //             alert("نوع وظیفه را انتخاب کنید");
-  //         }
-  //     }
-  // );
-  // }
-  // setInterval(() => {
-  //     if (document.querySelector(".workitem-tool-bar ul")) {
-  //         if (document.getElementById("sendTask")) {
-  //             return;
-  //         }
-  //         document.querySelector(".work-item-form-tags ul").innerHTML += `<li>
-  //         <div id="sendTask"><img width="30" src="${chrome.runtime.getURL(
-  //           "icon.png"
-  //         )}" alt=""></div></li>`;
-  //         document.getElementById("sendTask").onclick = sendTask;
-  //     }
-  // }, 1000);
 };
 
 if (location.href.includes("RequestExtraWorkList")) {
@@ -162,7 +122,7 @@ const runMyActivity = async () => {
       if (exitTime.includes("پ")) {
         exitTime = exitTime.replace("پ ", "");
         exitTime = exitTime.trim();
-        if (exitTime.includes("PM") || exitTime.includes("AM")) {
+        if (exitTime.includes("PM")) {
           result.push({
             exitTime,
             date,
@@ -175,7 +135,7 @@ const runMyActivity = async () => {
 
     chrome.storage.sync.set(
       {
-        extraDates: JSON.stringify(result),
+        extraDates: JSON.stringify(result.filter(Boolean)),
       },
       function () {}
     );
