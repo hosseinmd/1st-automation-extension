@@ -24,7 +24,7 @@
         "styles.css"
       ],
       "js": [
-        "lib/index.js"
+        "lib/bundle.js"
       ],
       "matches": [
         "http://automation.1st.co.com:8888/*"
