@@ -24,7 +24,7 @@ const runMyActivity = async () => {
   }
 
   const addExtra = document.createElement("a");
-  addExtra.innerText = "ذخیره اضافه کاری";
+  addExtra.innerText = "   ذخیره اضافه کاری   ";
   addExtra.style.paddingRight = "10px";
 
   addExtra.onclick = async () => {
@@ -135,7 +135,7 @@ const runMyActivity = async () => {
   };
 
   const requestLeave = document.createElement("a");
-  requestLeave.innerText = "درخواست مرخصی";
+  requestLeave.innerText = "   درخواست مرخصی   ";
   requestLeave.style.paddingRight = "10px";
 
   requestLeave.onclick = async () => {
@@ -212,10 +212,20 @@ const runMyActivity = async () => {
       },
     );
   };
+
+  const removeStorage = document.createElement("a");
+  removeStorage.innerText = "    پاک کرد کش    ";
+  removeStorage.style.paddingRight = "10px";
+
+  removeStorage.onclick = () => {
+    chrome.storage.sync.clear();
+    alert("کش افزونه خالی گردید.");
+  };
+
   rwTitleWrapper.innerText = "";
-  rwTitleWrapper.innerHTML = "";
   rwTitleWrapper.appendChild(addExtra);
   rwTitleWrapper.appendChild(requestLeave);
+  rwTitleWrapper.appendChild(removeStorage);
 };
 
 export { runMyActivity };
