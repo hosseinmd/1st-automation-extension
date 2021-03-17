@@ -107,7 +107,7 @@ const runMyActivity = async () => {
         return;
       }
 
-      if (exitTime.includes("PM")) {
+      if (exitTime?.includes("PM")) {
         result.push({
           exitTime,
           date,
