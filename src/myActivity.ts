@@ -70,12 +70,12 @@ const runMyActivity = async () => {
 
       const timeArray = textContent.split("و/خ") || [];
 
-      // const timeEntries = timeArray.slice(1).map((v) =>
-      //   v
-      //     .trim()
-      //     .split("-")
-      //     .map((t) => t.trim().replace("پ", "").replace("ش", "").trim()),
-      // );
+      const timeEntries = timeArray.slice(1).map((v) =>
+        v
+          .trim()
+          .split("-")
+          .map((t) => t.trim().replace("پ", "").replace("ش", "").trim()),
+      );
 
       // const durations = timeEntries.map(([startTime, exitTime]) => {
       //   const durationMS =
@@ -97,7 +97,7 @@ const runMyActivity = async () => {
       //   return;
       // }
 
-      const exitTime = timeArray[timeArray.length - 1][1];
+      const exitTime = timeEntries[timeEntries.length - 1]?.[1];
 
       const isAfter =
         new Date(`2020/1/1 ${exitTime}`).getTime() -
