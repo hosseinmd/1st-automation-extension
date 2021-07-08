@@ -7,19 +7,77 @@ const runExtraTime = async () => {
       extraDates: "",
     },
     async function ({ extraDates: ـextraDates }) {
+      const tds: string[] = [];
       let extraDates: ExtraItem[] =
         (ـextraDates && JSON.parse(ـextraDates)) || [];
       extraDates = extraDates.filter(Boolean);
-      console.log({ extraDates });
 
       if (extraDates.length <= 0) {
         return;
+      }
+      const listOfPageValue = document.getElementById(
+        "ctl00_ctl00_ctl00_C_C_C_grdRequest_ctl00_ctl03_ctl01_PageSizeComboBox_Input",
+      ) as HTMLInputElement;
+      if (listOfPageValue) {
+        if (listOfPageValue.value !== "50") {
+          const listOfPageAction = document.querySelector(
+            ".rcbActionButton",
+          ) as HTMLButtonElement;
+          if (listOfPageAction) {
+            listOfPageAction.click();
+            await sleep(500);
+            const listOfPageActionList = document.querySelector(".rcbSlide");
+            if (listOfPageActionList) {
+              const main = listOfPageActionList.querySelector(
+                "#ctl00_ctl00_ctl00_C_C_C_grdRequest_ctl00_ctl03_ctl01_PageSizeComboBox_DropDown",
+              );
+              if (main) {
+                const children = main?.querySelector(".rcbScroll");
+                if (children) {
+                  const ul = children?.querySelector(".rcbList");
+                  const li = ul?.querySelectorAll("li");
+                  if (li) {
+                    li[2].click();
+                    await sleep(5000);
+                    const getTable = document.getElementById(
+                      "ctl00_ctl00_ctl00_C_C_C_grdRequest",
+                    );
+                    if (getTable) {
+                      const table = getTable.querySelector("table");
+                      if (table) {
+                        const tbody = table.querySelector("tbody");
+                        if (tbody) {
+                          const trs = tbody.querySelectorAll("tr");
+                          if (trs) {
+                            trs.forEach((tr) => {
+                              const startDate = tr.querySelectorAll("td")[1]
+                                ?.textContent;
+                              tds.push(String(startDate));
+                            });
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
 
       await sleep(1000);
       const iframe = document.getElementsByName("myPopupWindow")?.[0] as
         | HTMLIFrameElement
         | undefined;
+      const item = extraDates.pop() as ExtraItem;
+      chrome.storage.sync.set({
+        extraDates: JSON.stringify(extraDates),
+      });
+      const isSet = tds.includes(item.date);
+      if (isSet) {
+        return;
+      }
 
       if (!iframe) {
         // will be reload
@@ -34,10 +92,6 @@ const runExtraTime = async () => {
         runExtraTime();
         return;
       }
-      const item = extraDates.pop() as ExtraItem;
-      chrome.storage.sync.set({
-        extraDates: JSON.stringify(extraDates),
-      });
 
       await sleep(1000);
       if (!iDocument.getElementById("ctl00_C_rdtpStartTime_dateInput")) {

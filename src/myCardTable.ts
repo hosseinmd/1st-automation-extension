@@ -68,12 +68,12 @@ const runMyCardTable = async () => {
       }
 
       _iframe.focus();
-      await sleep(1000);
+      await sleep(3000);
 
       const _iDocument = _iframe.contentWindow?.document;
 
       _iDocument?.getElementById("ctl00_C_btnAccept")?.click();
-      await sleep(2000);
+      await sleep(3000);
     }
   };
 
