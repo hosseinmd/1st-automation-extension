@@ -1,13 +1,13 @@
 import { ExtraItem } from "./types";
 import { setValue, sleep } from "./utils";
-
+const tds: string[] = [];
 const runExtraTime = async () => {
   chrome.storage.sync.get(
     {
       extraDates: "",
+      tdsDate: "",
     },
-    async function ({ extraDates: ـextraDates }) {
-      const tds: string[] = [];
+    async function ({ extraDates: ـextraDates, tdsDate: _tdsDate }) {
       let extraDates: ExtraItem[] =
         (ـextraDates && JSON.parse(ـextraDates)) || [];
       extraDates = extraDates.filter(Boolean);
@@ -54,6 +54,9 @@ const runExtraTime = async () => {
                                 ?.textContent;
                               tds.push(String(startDate));
                             });
+                            chrome.storage.sync.set({
+                              tdsDate: JSON.stringify(tds),
+                            });
                           }
                         }
                       }
@@ -74,8 +77,13 @@ const runExtraTime = async () => {
       chrome.storage.sync.set({
         extraDates: JSON.stringify(extraDates),
       });
-      const isSet = tds.includes(item.date);
+      const tdsDate = JSON.parse(_tdsDate) as string[];
+      await sleep(200);
+      const isSet = tdsDate.includes(item.date);
+      await sleep(500);
       if (isSet) {
+        const index = extraDates.findIndex((_item) => item.date === _item.date);
+        extraDates.slice(index, 1);
         return;
       }
 
