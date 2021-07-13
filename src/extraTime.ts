@@ -77,16 +77,19 @@ const runExtraTime = async () => {
       chrome.storage.sync.set({
         extraDates: JSON.stringify(extraDates),
       });
-      const tdsDate = JSON.parse(_tdsDate) as string[];
-      await sleep(200);
-      const isSet = tdsDate.includes(item.date);
-      await sleep(500);
-      if (isSet) {
-        const index = extraDates.findIndex((_item) => item.date === _item.date);
-        extraDates.slice(index, 1);
-        return;
+      if (_tdsDate) {
+        const tdsDate = JSON.parse(_tdsDate) as string[];
+        await sleep(200);
+        const isSet = tdsDate.includes(item.date);
+        await sleep(500);
+        if (isSet) {
+          const index = extraDates.findIndex(
+            (_item) => item.date === _item.date,
+          );
+          extraDates.slice(index, 1);
+          return;
+        }
       }
-
       if (!iframe) {
         // will be reload
         document.getElementById("C_C_C_ImgBtnNew")?.click();
