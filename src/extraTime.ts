@@ -119,6 +119,7 @@ const runExtraTime = async () => {
         );
         await setValue(iDocument, "C_rdtxtDesc", ".");
         await sleep(300);
+        console.log({ extraDates });
         iDocument.getElementById("ctl00_C_btnSave")?.click();
         const interval = setInterval(() => {
           const visibility = document.getElementById(

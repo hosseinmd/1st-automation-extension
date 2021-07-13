@@ -113,12 +113,16 @@ const addExtraTimes = async () => {
     if (isAfter < 0) {
       return;
     }
-
+    if (exitTime?.includes("اضافه کاری")) {
+      return;
+    }
     if (exitTime?.includes("PM")) {
       result.push({
         exitTime,
         date,
       });
+    } else {
+      return;
     }
   });
 
