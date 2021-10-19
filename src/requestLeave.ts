@@ -1,5 +1,6 @@
 import { DelayItem } from "./types";
 import { setValue, sleep } from "./utils";
+import moment from "moment-jalaali";
 
 const runRequestLeave = async () => {
   chrome.storage.sync.get(
@@ -48,14 +49,35 @@ const runRequestLeave = async () => {
       if (iDocument.getElementById("ctl00_C_tpEndTime_dateInput")) {
         await setValue(iDocument, "ctl00_C_txtDesc", ".");
         await setValue(iDocument, "C_dpDate_txtDate", item.date);
-        await setValue(iDocument, "ctl00_C_tpStartTime_dateInput", "8:30 AM");
-        await setValue(
-          iDocument,
-          "ctl00_C_tpEndTime_dateInput",
-          item.startTime,
-        );
+        if (item.endTime) {
+          await setValue(
+            iDocument,
+            "ctl00_C_tpStartTime_dateInput",
+            item.endTime,
+          );
+          // const lowTime = moment(
+          //   new Date(`2020/1/1 8:30 AM`).getTime() -
+          //     (new Date(`2020/1/1 ${item.endTime}`).getTime() -
+          //       new Date(`2020/1/1 ${item.startTime}`).getTime()) +
+          //     new Date(`2020/1/1 ${item.endTime}`).getTime(),
+          // ).format("hh:mm A");
+          moment(item.endTime, "hh:mm A").add({});
+          await setValue(
+            iDocument,
+            "ctl00_C_tpEndTime_dateInput",
+            item.lowTime!,
+          );
+        } else {
+          await setValue(iDocument, "ctl00_C_tpStartTime_dateInput", "8:30 AM");
+          await setValue(
+            iDocument,
+            "ctl00_C_tpEndTime_dateInput",
+            item.startTime,
+          );
+        }
+
         await sleep(300);
-        iDocument.getElementById("ctl00_C_btnSave")?.click();
+        // iDocument.getElementById("ctl00_C_btnSave")?.click();
 
         const interval = setInterval(() => {
           const visibility = document.getElementById(
