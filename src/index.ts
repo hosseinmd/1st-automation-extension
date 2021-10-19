@@ -8,7 +8,6 @@ if (location.href.includes("RequestExtraWorkList")) {
 }
 
 if (location.href.includes("MyActivity")) {
-  console.log("MyActivity");
   runMyActivity();
 }
 

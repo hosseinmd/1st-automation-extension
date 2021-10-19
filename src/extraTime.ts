@@ -1,26 +1,95 @@
 import { ExtraItem } from "./types";
 import { setValue, sleep } from "./utils";
-
+const tds: string[] = [];
 const runExtraTime = async () => {
   chrome.storage.sync.get(
     {
       extraDates: "",
+      tdsDate: "",
     },
-    async function ({ extraDates: ـextraDates }) {
+    async function ({ extraDates: ـextraDates, tdsDate: _tdsDate }) {
       let extraDates: ExtraItem[] =
         (ـextraDates && JSON.parse(ـextraDates)) || [];
       extraDates = extraDates.filter(Boolean);
-      console.log({ extraDates });
 
       if (extraDates.length <= 0) {
         return;
+      }
+      const listOfPageValue = document.getElementById(
+        "ctl00_ctl00_ctl00_C_C_C_grdRequest_ctl00_ctl03_ctl01_PageSizeComboBox_Input",
+      ) as HTMLInputElement;
+      if (listOfPageValue) {
+        if (listOfPageValue.value !== "50") {
+          const listOfPageAction = document.querySelector(
+            ".rcbActionButton",
+          ) as HTMLButtonElement;
+          if (listOfPageAction) {
+            listOfPageAction.click();
+            await sleep(500);
+            const listOfPageActionList = document.querySelector(".rcbSlide");
+            if (listOfPageActionList) {
+              const main = listOfPageActionList.querySelector(
+                "#ctl00_ctl00_ctl00_C_C_C_grdRequest_ctl00_ctl03_ctl01_PageSizeComboBox_DropDown",
+              );
+              if (main) {
+                const children = main?.querySelector(".rcbScroll");
+                if (children) {
+                  const ul = children?.querySelector(".rcbList");
+                  const li = ul?.querySelectorAll("li");
+                  if (li) {
+                    li[2].click();
+                    await sleep(5000);
+                    const getTable = document.getElementById(
+                      "ctl00_ctl00_ctl00_C_C_C_grdRequest",
+                    );
+                    if (getTable) {
+                      const table = getTable.querySelector("table");
+                      if (table) {
+                        const tbody = table.querySelector("tbody");
+                        if (tbody) {
+                          const trs = tbody.querySelectorAll("tr");
+                          if (trs) {
+                            trs.forEach((tr) => {
+                              const startDate = tr.querySelectorAll("td")[1]
+                                ?.textContent;
+                              tds.push(String(startDate));
+                            });
+                            chrome.storage.sync.set({
+                              tdsDate: JSON.stringify(tds),
+                            });
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
 
       await sleep(1000);
       const iframe = document.getElementsByName("myPopupWindow")?.[0] as
         | HTMLIFrameElement
         | undefined;
-
+      const item = extraDates.pop() as ExtraItem;
+      chrome.storage.sync.set({
+        extraDates: JSON.stringify(extraDates),
+      });
+      if (_tdsDate) {
+        const tdsDate = JSON.parse(_tdsDate) as string[];
+        await sleep(200);
+        const isSet = tdsDate.includes(item.date);
+        await sleep(500);
+        if (isSet) {
+          const index = extraDates.findIndex(
+            (_item) => item.date === _item.date,
+          );
+          extraDates.slice(index, 1);
+          return;
+        }
+      }
       if (!iframe) {
         // will be reload
         document.getElementById("C_C_C_ImgBtnNew")?.click();
@@ -34,10 +103,6 @@ const runExtraTime = async () => {
         runExtraTime();
         return;
       }
-      const item = extraDates.pop() as ExtraItem;
-      chrome.storage.sync.set({
-        extraDates: JSON.stringify(extraDates),
-      });
 
       await sleep(1000);
       if (!iDocument.getElementById("ctl00_C_rdtpStartTime_dateInput")) {
@@ -54,6 +119,7 @@ const runExtraTime = async () => {
         );
         await setValue(iDocument, "C_rdtxtDesc", ".");
         await sleep(300);
+        console.log({ extraDates });
         iDocument.getElementById("ctl00_C_btnSave")?.click();
         const interval = setInterval(() => {
           const visibility = document.getElementById(
