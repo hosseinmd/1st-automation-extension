@@ -1,3 +1,4 @@
+import { DelayItem } from "./types";
 import { sleep } from "./utils";
 
 const runMyActivity = async () => {
@@ -162,7 +163,7 @@ const requestLeaveTime = async () => {
     "#C_timeSheetTotalView_gridviewReport tr",
   );
 
-  const result: { date: string; startTime: string }[] = [];
+  const result: DelayItem[] = [];
 
   trs.forEach((tr, index) => {
     if (index === 0) {
@@ -171,6 +172,7 @@ const requestLeaveTime = async () => {
     const weekName = tr.querySelectorAll("td")[1].textContent?.trim();
     const textContent = tr.querySelectorAll("td")[4].textContent;
     const date = tr.querySelectorAll("td")[2].textContent;
+    const lowTime = tr.querySelectorAll("td")[7].textContent;
 
     const isThus = weekName === "پنجشنبه";
     const isFri = weekName === "جمعه";
@@ -200,6 +202,11 @@ const requestLeaveTime = async () => {
 
     if (hasDelay < 0) {
       result.push({ startTime, date });
+    }
+
+    if (lowTime) {
+      const endTime = timeMatrix[timeMatrix.length - 1]?.[1];
+      result.push({ startTime, endTime, lowTime, date });
     }
   });
 
